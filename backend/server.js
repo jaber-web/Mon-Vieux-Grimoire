@@ -7,6 +7,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const Book = require("./models/Book");
 const authRoutes = require("./routes/auth");
+const auth = require("./middleware/auth");
 
 const app = express();
 
@@ -42,7 +43,7 @@ app.get("/api/books/:id", async (req, res) => {
   }
 });
 
-app.put("/api/books/:id", async (req, res) => {
+app.put("/api/books/:id", auth, async (req, res) => {
   try {
     const updatedBook = await Book.findByIdAndUpdate(
       req.params.id,
