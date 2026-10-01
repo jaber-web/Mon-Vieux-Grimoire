@@ -5,13 +5,25 @@ require("dotenv").config({
 
 const express = require("express");
 const mongoose = require("mongoose");
+const Book = require("./models/Book");
 
 const app = express();
+
+app.use(express.json());
 
 const port = 3000;
 
 app.get("/", (req, res) => {
   res.send("Mon Vieux Grimoire API fonctionne !");
+});
+
+app.get("/api/books", async (req, res) => {
+  try {
+    const books = await Book.find();
+    res.status(200).json(books);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 mongoose
