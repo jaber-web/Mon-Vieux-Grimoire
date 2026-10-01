@@ -26,6 +26,17 @@ app.get("/api/books", async (req, res) => {
   }
 });
 
+app.post("/api/books", async (req, res) => {
+  try {
+    const book = new Book(req.body);
+    const savedBook = await book.save();
+
+    res.status(201).json(savedBook);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
 mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => {
