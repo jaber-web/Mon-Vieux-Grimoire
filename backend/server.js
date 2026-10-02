@@ -8,10 +8,14 @@ const mongoose = require("mongoose");
 const Book = require("./models/Book");
 const authRoutes = require("./routes/auth");
 const auth = require("./middleware/auth");
+const multer = require("./middleware/multer-config");
+const sharp = require("./middleware/sharp");
 
 const app = express();
 
 app.use(express.json());
+app.use("/images", express.static(path.join(__dirname, "images")));
+app.use(sharp);
 app.use("/api/auth", authRoutes);
 
 const port = 3000;
@@ -43,11 +47,19 @@ app.get("/api/books/:id", auth, async (req, res) => {
   }
 });
 
-app.put("/api/books/:id", auth, async (req, res) => {
+app.put("/api/books/:id", auth, multer, sharp, async (req, res) => {
   try {
+    const updateData = {
+      ...req.body
+    };
+
+    if (req.file) {
+      updateData.imageUrl = `${req.protocol}://${req.get("host")}/images/${req.file.filename}`;
+    }
+
     const updatedBook = await Book.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      updateData,
       { new: true, runValidators: true }
     );
 
@@ -75,10 +87,13 @@ app.delete("/api/books/:id", auth, async (req, res) => {
   }
 });
 
-app.post("/api/books", auth, async (req, res) => {
-
+app.post("/api/books", auth, multer, sharp, async (req, res) => {
   try {
-    const book = new Book(req.body);
+    const book = new Book({
+      ...req.body,
+      imageUrl: `${req.protocol}://${req.get("host")}/images/${req.file.filename}`
+    });
+
     const savedBook = await book.save();
 
     res.status(201).json(savedBook);
