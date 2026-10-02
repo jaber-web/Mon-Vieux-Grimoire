@@ -29,7 +29,7 @@ app.get("/api/books", async (req, res) => {
   }
 });
 
-app.get("/api/books/:id", async (req, res) => {
+app.get("/api/books/:id", auth, async (req, res) => {
   try {
     const book = await Book.findById(req.params.id);
 
@@ -61,7 +61,7 @@ app.put("/api/books/:id", auth, async (req, res) => {
   }
 });
 
-app.delete("/api/books/:id", async (req, res) => {
+app.delete("/api/books/:id", auth, async (req, res) => {
   try {
     const deletedBook = await Book.findByIdAndDelete(req.params.id);
 
@@ -75,7 +75,8 @@ app.delete("/api/books/:id", async (req, res) => {
   }
 });
 
-app.post("/api/books", async (req, res) => {
+app.post("/api/books", auth, async (req, res) => {
+
   try {
     const book = new Book(req.body);
     const savedBook = await book.save();
