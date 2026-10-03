@@ -15,7 +15,6 @@ const app = express();
 
 app.use(express.json());
 app.use("/images", express.static(path.join(__dirname, "images")));
-app.use(sharp);
 app.use("/api/auth", authRoutes);
 
 const port = 3000;
@@ -70,6 +69,53 @@ app.put("/api/books/:id", auth, multer, sharp, async (req, res) => {
     res.status(200).json(updatedBook);
   } catch (error) {
     res.status(400).json({ error: error.message });
+  }
+});
+
+app.post("/api/books/:id/rating", auth, async (req, res) => {
+  try {
+    const { grade } = req.body;
+
+    // Vérifier que la note est un nombre entre 0 et 5
+    if (!Number.isInteger(grade) || grade < 0 || grade > 5) {
+      return res.status(400).json({
+        message: "La note doit être un nombre entier entre 0 et 5"
+      });
+    }
+
+    // Chercher le livre
+    const book = await Book.findById(req.params.id);
+
+    if (!book) {
+      return res.status(404).json({
+        message: "Livre non trouvé"
+      });
+    }
+
+    // Vérifier si l'utilisateur a déjà noté ce livre
+    const alreadyRated = book.ratings.some(
+      (rating) => rating.userId === req.auth.userId
+    );
+
+    if (alreadyRated) {
+      return res.status(400).json({
+        message: "Vous avez déjà noté ce livre"
+      });
+    }
+
+    // Ajouter la nouvelle note
+    book.ratings.push({
+      userId: req.auth.userId,
+      grade
+    });
+
+    await book.save();
+
+    res.status(200).json(book);
+  } catch (error) {
+    res.status(400).json({
+      error: error.message
+    });
   }
 });
 
