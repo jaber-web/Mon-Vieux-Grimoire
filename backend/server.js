@@ -109,9 +109,18 @@ app.post("/api/books/:id/rating", auth, async (req, res) => {
       grade
     });
 
+    // Calculer la note moyenne
+    const total = book.ratings.reduce(
+      (sum, rating) => sum + rating.grade,
+      0
+    );
+
+    book.averageRating = total / book.ratings.length;
+
     await book.save();
 
     res.status(200).json(book);
+
   } catch (error) {
     res.status(400).json({
       error: error.message
