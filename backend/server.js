@@ -10,8 +10,10 @@ const authRoutes = require("./routes/auth");
 const auth = require("./middleware/auth");
 const multer = require("./middleware/multer-config");
 const sharp = require("./middleware/sharp");
+const cors = require("cors");
 
 const app = express();
+app.use(cors());
 
 app.use(express.json());
 app.use("/images", express.static(path.join(__dirname, "images")));
