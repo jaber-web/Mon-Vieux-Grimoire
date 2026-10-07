@@ -94,7 +94,7 @@ export async function deleteBook(id) {
 export async function rateBook(id, userId, rating) {
   const data = {
     userId,
-    rating: parseInt(rating, 10),
+    grade: parseInt(rating, 10),
   };
 
   try {
