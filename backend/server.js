@@ -72,7 +72,7 @@ app.get("/api/books/bestrating", async (req, res) => {
 // GET UN LIVRE PAR SON ID
 // =========================
 
-app.get("/api/books/:id", auth, async (req, res) => {
+app.get("/api/books/:id", async (req, res) => {
   try {
     const book = await Book.findById(req.params.id);
 
@@ -216,8 +216,11 @@ app.delete("/api/books/:id", auth, async (req, res) => {
 
 app.post("/api/books", auth, multer, sharp, async (req, res) => {
   try {
+    const bookData = JSON.parse(req.body.book);
+
     const book = new Book({
-      ...req.body,
+      ...bookData,
+      userId: req.auth.userId,
       imageUrl: `${req.protocol}://${req.get("host")}/images/${req.file.filename}`,
     });
 
