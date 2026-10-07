@@ -96,10 +96,33 @@ app.get("/api/books/:id", async (req, res) => {
 
 app.put("/api/books/:id", auth, multer, sharp, async (req, res) => {
   try {
-    const updateData = {
-      ...req.body,
-    };
+    const book = await Book.findById(req.params.id);
 
+    if (!book) {
+      return res.status(404).json({
+        message: "Livre non trouvé",
+      });
+    }
+
+    // Vérifier que l'utilisateur est bien le propriétaire
+    if (book.userId !== req.auth.userId) {
+      return res.status(403).json({
+        message: "Vous n'êtes pas autorisé à modifier ce livre",
+      });
+    }
+
+    // Récupérer les données du livre
+    let updateData = {};
+
+    if (req.body.book) {
+      updateData = JSON.parse(req.body.book);
+    } else {
+      updateData = {
+        ...req.body,
+      };
+    }
+
+    // Si une nouvelle image est envoyée
     if (req.file) {
       updateData.imageUrl = `${req.protocol}://${req.get("host")}/images/${req.file.filename}`;
     }
@@ -112,12 +135,6 @@ app.put("/api/books/:id", auth, multer, sharp, async (req, res) => {
         runValidators: true,
       }
     );
-
-    if (!updatedBook) {
-      return res.status(404).json({
-        message: "Livre non trouvé",
-      });
-    }
 
     res.status(200).json(updatedBook);
   } catch (error) {
@@ -192,13 +209,22 @@ app.post("/api/books/:id/rating", auth, async (req, res) => {
 
 app.delete("/api/books/:id", auth, async (req, res) => {
   try {
-    const deletedBook = await Book.findByIdAndDelete(req.params.id);
+    const book = await Book.findById(req.params.id);
 
-    if (!deletedBook) {
+    if (!book) {
       return res.status(404).json({
         message: "Livre non trouvé",
       });
     }
+
+    // Vérifier que l'utilisateur est bien le propriétaire
+    if (book.userId !== req.auth.userId) {
+      return res.status(403).json({
+        message: "Vous n'êtes pas autorisé à supprimer ce livre",
+      });
+    }
+
+    await Book.findByIdAndDelete(req.params.id);
 
     res.status(200).json({
       message: "Livre supprimé",
